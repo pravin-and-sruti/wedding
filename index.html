@@ -210,29 +210,23 @@
     display:block; font-family:'Space Mono', monospace; font-size:11px; color:var(--teal);
     letter-spacing:1px; margin-bottom:2px;
   }
-  .events li.has-info{cursor:help;}
+  .events li.has-info{cursor:pointer;}
   .events li .event-name{
     border-bottom:1px dotted rgba(107,20,32,0.4);
   }
   .events li .event-info{
-    position:absolute; left:20px; right:0; top:100%; margin-top:8px;
-    background:var(--stone-deep); border:1px solid rgba(216,184,118,0.4);
-    padding:10px 14px; font-size:13px; line-height:1.5; color:var(--ink);
+    display:block;
+    max-height:0; overflow:hidden; opacity:0;
+    background:var(--stone-deep); border:0 solid rgba(216,184,118,0.4);
+    font-size:13px; line-height:1.5; color:var(--ink);
     font-family:'Work Sans', sans-serif; font-weight:400;
-    opacity:0; visibility:hidden; transform:translateY(-4px);
-    transition:opacity 0.2s ease, transform 0.2s ease;
-    z-index:5; pointer-events:none;
+    padding:0 14px;
+    transition:max-height 0.35s ease, opacity 0.3s ease, margin-top 0.35s ease, padding 0.35s ease, border-width 0.35s ease;
+    margin-top:0;
   }
-  .events li.has-info:hover .event-info,
-  .events li.has-info.info-active .event-info{
-    opacity:1; visibility:visible; transform:translateY(0);
-  }
-  .events li.has-info:hover,
-  .events li.has-info.info-active{
-    z-index:6;
-  }
-  @media (hover:none){
-    .events li .event-name{border-bottom-style:dotted;}
+  .events li.info-open .event-info{
+    max-height:160px; opacity:1; margin-top:10px;
+    padding:10px 14px; border-width:1px;
   }
 
   /* VENUE */
@@ -1258,32 +1252,18 @@
     document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeLightbox(); });
   })();
 
-  // Ritual info tooltips: hover works via CSS alone; this handles tap-and-hold on touch devices
-  (function setupEventInfoTouch(){
-    document.querySelectorAll('.events li.has-info').forEach(li=>{
-      let pressTimer = null;
-      let moved = false;
-
-      li.addEventListener('touchstart', ()=>{
-        moved = false;
-        pressTimer = setTimeout(()=>{
-          if(!moved) li.classList.add('info-active');
-        }, 380);
-      }, {passive:true});
-
-      li.addEventListener('touchmove', ()=>{
-        moved = true;
-        clearTimeout(pressTimer);
-      }, {passive:true});
-
-      li.addEventListener('touchend', ()=>{
-        clearTimeout(pressTimer);
-        li.classList.remove('info-active');
-      });
-
-      li.addEventListener('touchcancel', ()=>{
-        clearTimeout(pressTimer);
-        li.classList.remove('info-active');
+  // Ritual info: tap/click an event to expand its description inline (pushing
+  // later events down rather than floating over them). Only one open per list
+  // at a time — opening another closes the previous, tapping the open one closes it.
+  (function setupEventInfoAccordion(){
+    document.querySelectorAll('.events').forEach(list=>{
+      const items = list.querySelectorAll('li.has-info');
+      items.forEach(li=>{
+        li.addEventListener('click', ()=>{
+          const isOpen = li.classList.contains('info-open');
+          items.forEach(other=>other.classList.remove('info-open'));
+          if(!isOpen) li.classList.add('info-open');
+        });
       });
     });
   })();
