@@ -101,6 +101,15 @@
   .date-scratch-row{
     margin-top:18px; display:flex; gap:18px; justify-content:center;
   }
+  .scratch-hint{
+    margin-top:14px; font-family:'Space Mono', monospace; font-size:11px;
+    letter-spacing:1.5px; text-transform:uppercase; color:var(--gold);
+    opacity:0.85; transition:opacity 0.4s ease, max-height 0.4s ease;
+    max-height:30px; overflow:hidden;
+  }
+  .scratch-hint.done{
+    opacity:0; max-height:0; margin-top:0;
+  }
   .date-heart{
     position:relative;
     width:78px; height:74px;
@@ -179,7 +188,12 @@
   }
   .day-card h3{font-size:24px; margin:8px 0 4px;}
   .day-card .day-date{color:var(--ink-soft); font-size:14px; margin-bottom:22px;}
-  .events{list-style:none;}
+  .events{list-style:none; position:relative;}
+  .events::before{
+    content:"";
+    position:absolute; left:3px; top:19px; bottom:19px;
+    width:1px; background:rgba(107,20,32,0.18);
+  }
   .events li{
     padding:12px 0 12px 20px;
     border-top:1px solid rgba(42,35,28,0.1);
@@ -506,6 +520,7 @@
   .lightbox-photo{
     aspect-ratio:1/1; background:var(--stone-deep);
     display:flex; align-items:center; justify-content:center;
+    position:relative;
   }
   .lightbox-caption{
     text-align:center; margin-top:14px;
@@ -513,10 +528,15 @@
     color:var(--ink-soft); text-transform:uppercase;
   }
   .lightbox-close{
-    position:absolute; top:18px; right:20px;
-    background:none; border:none; font-size:30px; line-height:1;
-    color:var(--stone); cursor:pointer; padding:6px;
+    position:absolute; top:8px; right:8px;
+    width:32px; height:32px;
+    background:rgba(20,14,10,0.55); border:none; border-radius:50%;
+    font-size:20px; line-height:1;
+    color:#fff; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background 0.2s ease;
   }
+  .lightbox-close:hover{background:rgba(20,14,10,0.8);}
 
   /* WHAT TO WEAR */
   .wear-grid{
@@ -646,6 +666,7 @@
     <div class="date-heart" data-text="NOV"><span class="rev-text">NOV</span></div>
     <div class="date-heart" data-text="26"><span class="rev-text">26</span></div>
   </div>
+  <p class="scratch-hint" id="scratchHint">✦ scratch each heart to reveal ✦</p>
   <p class="place">Tiruchirappalli, Tamil Nadu</p>
   <div class="countdown" id="countdown">
     <div class="unit"><span class="num" id="cd-days">–</span><span class="label">Days</span></div>
@@ -659,9 +680,9 @@
 <section class="schedule" id="schedule">
   <div class="wrap">
     <div class="section-head reveal">
-      <p class="eyebrow">Three days of celebration</p>
+      <p class="eyebrow">A weekend to remember</p>
       <h2>The schedule</h2>
-      <p>From the first evening of music to the final blessing, here's how our celebrations unfold.</p>
+      <p>From the first ritual to the final blessing, here's how it all unfolds.</p>
     </div>
     <div class="tabs" id="scheduleTabs">
       <div class="tab-buttons" role="tablist">
@@ -753,11 +774,11 @@
 </section>
 
 <div class="lightbox" id="galleryLightbox" aria-hidden="true">
-  <button class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
   <div class="lightbox-card">
     <div class="lightbox-photo" id="lightboxPhoto">
       <div class="cam" id="lightboxPlaceholder" style="transform:scale(1.8);"></div>
       <img id="lightboxImg" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover;">
+      <button class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
     </div>
     <p class="lightbox-caption" id="lightboxCaption">Add photo</p>
   </div>
@@ -1138,8 +1159,12 @@
 
   (function setupDateCircles(){
     const circles = document.querySelectorAll('.date-heart');
+    const hint = document.getElementById('scratchHint');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(reduceMotion || circles.length === 0) return;
+    if(reduceMotion || circles.length === 0){
+      if(hint) hint.classList.add('done');
+      return;
+    }
 
     let clearedCount = 0;
     circles.forEach(circle=>{
@@ -1147,6 +1172,7 @@
         scratchCircle(circle, ()=>{
           clearedCount++;
           if(clearedCount === circles.length){
+            if(hint) hint.classList.add('done');
             runSweepTransition(swapContent);
           }
         });
